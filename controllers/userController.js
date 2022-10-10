@@ -1,6 +1,8 @@
 const User = require( '../models/userModel' );
 const AppError = require( '../utils/appError' );
 const catchAsync = require( '../utils/catchAsync' );
+const factory = require( './handlersFactory' );
+
 
 const filterObj = ( obj, ...allowedFields ) =>
 {
@@ -12,19 +14,11 @@ const filterObj = ( obj, ...allowedFields ) =>
     return newObj;
 };
 
-exports.getAllUsers = catchAsync( async ( req, res, next ) =>
+exports.getMe = ( req, res, next ) =>
 {
-    const users = await User.find();
-
-    // SEND RESPONSE
-    res.status( 200 ).json( {
-        status: "sucess",
-        results: users.length,
-        data: {
-            users
-        }
-    } );
-} );
+    req.params.id = req.user.id;
+    next();
+};
 
 exports.updateMe = catchAsync( async ( req, res, next ) =>
 {
@@ -48,6 +42,7 @@ exports.updateMe = catchAsync( async ( req, res, next ) =>
     } );
 } );
 
+//Andro:H2: When user deletes himself
 exports.deleteMe = catchAsync( async ( req, res, next ) =>
 {
     await User.findByIdAndUpdate( req.user.id, { active: false } );
@@ -58,34 +53,20 @@ exports.deleteMe = catchAsync( async ( req, res, next ) =>
     } );
 } );
 
-exports.getUser = ( req, res ) =>
-{
-    res.status( 500 ).json( {
-        status: 'error',
-        message: 'This Route is not yet defined!'
-    } );
-};
+exports.getAllUsers = factory.getAll( User );
+
+exports.getUser = factory.getOne( User );
 
 exports.createUser = ( req, res ) =>
 {
     res.status( 500 ).json( {
         status: 'error',
-        message: 'This Route is not yet defined!'
+        message: 'This Route is not defined! Please use Signup instead'
     } );
 };
 
-exports.updateUser = ( req, res ) =>
-{
-    res.status( 500 ).json( {
-        status: 'error',
-        message: 'This Route is not yet defined!'
-    } );
-};
+//Andro:H2: Do NOT update password with this!
+exports.updateUser = factory.updateOne( User );
 
-exports.deleteUser = ( req, res ) =>
-{
-    res.status( 500 ).json( {
-        status: 'error',
-        message: 'This Route is not yet defined!'
-    } );
-};
+//Andro:H2: When administrator finally deletes all user data with the user
+exports.deleteUser = factory.deleteOne( User );
